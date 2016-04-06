@@ -3,4 +3,4 @@ The other data set, from Dillard’s, is a Teradata database containing tables w
 
 <a href="https://github.com/mdonov/Coursera_DU_SQL.sql/blob/master/SQL_Coursera_DU_code.sql">Here</a>  you can check out some examples of the query exercises with the Dillard’s dataset
 
-Course link - https://www.coursera.org/learn/analytics-mysql
+Find more information about the course <a href="https://www.coursera.org/learn/analytics-mysql">WRITTEN TEXT</a>  
