@@ -27,6 +27,41 @@ GROUP BY sub.store, sub.MonthlyChange, str.city, str.state
 ORDER BY sub.MonthlyChange DESC;
 
 
+--Write a query that determines the month in which each store had its maximum number 
+--of sku units returned. During which month did the greatest number of stores have t
+--heir maximum number of sku units returned
+
+SELECT sub.M, sub.Ranking, COUNT(sub.ranking)
+
+FROM
+(SELECT
+  store,
+  CASE EXTRACT(MONTH from saledate)
+   when 1 then 'jan'
+   when 2 then 'feb'
+   when 3 then 'mar'
+   when 4 then 'apr'
+   when 5 then 'may'
+   when 6 then 'jun'
+   when 7 then 'jul'
+   when 8 then 'aug'
+   when 9 then 'sep'
+   when 10 then 'oct'
+   when 11 then 'nom'
+   when 12 then 'dec'
+   END as m,
+  COUNT(sku) as SkuNumRet,
+ROW_NUMBER()OVER (PARTITION BY store ORDER BY store,SkuNumRet desc) as Ranking
+FROM trnsact
+QUALIFY Ranking <= 2
+WHERE stype='R' and not (m='aug' and EXTRACT(YEAR from saledate)=2005)
+GROUP BY  store,m) sub
+
+GROUP BY sub.M, sub.Ranking
+ORDER BY sub.Ranking asc
+
+
+
 
 
 --Which department within a particular store had the greatest decrease in average daily sales revenue from 
@@ -241,6 +276,67 @@ HAVING nDaysNov>=20 and nDaysDec>=20 and NovRev>1000 and DecRev>1000
 ORDER BY PerIncr desc
 
 
+
+
+--Identify the department within a particular store that had the greatest decrease innumber of items sold from 
+--August to September. How many fewer items did that department sell in September compared to August, and in 
+--what city and state was that store located?
+
+select  tr.store,di.deptdesc,str.city, str.state,
+
+         count (distinct(Case when extract(month from tr.saledate)=8 then tr.saledate END)) nDaysAug,
+         count(distinct(Case when extract(month from tr.saledate)=9 then tr.saledate END)) nDaysSep,
+ 
+         sum(case when extract(month from tr.saledate)=8 then tr.quantity END) as augNsku,
+         sum (case when extract(month from tr.saledate)=9 then tr.quantity END) as sepNsku,
+         (sepNsku- augNsku) as MonthDiff
+
+from trnsact tr JOIN strinfo as str on str.store=tr.store
+JOIN skuinfo as sk on sk.sku=tr.sku
+JOIN deptinfo di on di.dept=sk.dept
+
+where tr.stype='P' and NOT(extract(month from tr.saledate)=8 and extract(year from tr.saledate)=2005)
+group by  tr.store,str.city, str.state,di.deptdesc
+having nDaysAug>=20 and nDaysSep>=20
+order by MonthDiff asc;
+
+
+
+--For each store, determine the month with the minimum average daily revenue. 
+--For each of the twelve months of the year, count how many stores' minimum average
+--daily revenue was in that month. During which month(s) did over 100 stores have their minimum average daily revenue?
+
+SELECT M, Ranking, count(ranking) Num_Month_Low
+
+FROM
+(SELECT
+  store,
+  CASE EXTRACT(MONTH from saledate)
+   when 1 then 'jan'
+   when 2 then 'feb'
+   when 3 then 'mar'
+   when 4 then 'apr'
+   when 5 then 'may'
+   when 6 then 'jun'
+   when 7 then 'jul'
+   when 8 then 'aug'
+   when 9 then 'sep'
+   when 10 then 'oct'
+   when 11 then 'nom'
+   when 12 then 'dec'
+   END as m,
+  COUNT(DISTINCT saledate) nDays,
+  SUM(amt) tRevenue,
+  tRevenue/nDays AVGdailyRev,
+ROW_NUMBER()OVER (PARTITION BY store ORDER BY store,AVGdailyRev asc) as Ranking
+FROM trnsact
+QUALIFY Ranking <= 1
+WHERE stype='P' and NOT (EXTRACT(MONTH from saledate)=8 and EXTRACT(YEAR from saledate)=2005)
+GROUP BY  store,m
+HAVING ndays>=20) SUB
+
+GROUP BY M, Ranking
+ORDER BY Num_Month_Low
 
 
 
