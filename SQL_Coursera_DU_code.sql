@@ -7,19 +7,19 @@ FROM
 (SELECT
          tr.store,   
          COUNT (DISTINCT
-         (Case WHEN EXTRACT(MONTH from tr.saledate)=11 then tr.saledate END)) nDaysNov,
+         (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=11 then tr.saledate END)) nDaysNov,
          COUNT(DISTINCT
-         (Case WHEN EXTRACT(MONTH from tr.saledate)=12 then tr.saledate END)) nDaysDec,
+         (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=12 then tr.saledate END)) nDaysDec,
 
-         SUM (case WHEN EXTRACT(MONTH from tr.saledate)=11 then tr.amt END) as NovRev,
-         SUM (case WHEN EXTRACT(MONTH from tr.saledate)=12 then tr.amt END) as DecRev,
+         SUM (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=11 then tr.amt END) as NovRev,
+         SUM (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=12 then tr.amt END) as DecRev,
          NovRev/nDaysNov as avgNov,
          DecRev/nDaysDec as avgDec,
          (avgDec -avgNov) as MonthlyChange
 FROM trnsact tr
-WHERE tr.stype='P' and NOT(EXTRACT(MONTH from tr.saledate)=8 and EXTRACT(year from tr.saledate)=2005)
+WHERE tr.stype='P' AND NOT(EXTRACT(MONTH FROM tr.saledate)=8 AND EXTRACT(year FROM tr.saledate)=2005)
 GROUP BY tr.store
-HAVING nDaysDec>=20 and nDaysNov>=20) as sub
+HAVING nDaysDec>=20 AND nDaysNov>=20) as sub
 
 JOIN strinfo as str
 ON str.store=sub.store
@@ -36,25 +36,25 @@ SELECT sub.M, sub.Ranking, COUNT(sub.ranking)
 FROM
 (SELECT
   store,
-  CASE EXTRACT(MONTH from saledate)
-   when 1 then 'jan'
-   when 2 then 'feb'
-   when 3 then 'mar'
-   when 4 then 'apr'
-   when 5 then 'may'
-   when 6 then 'jun'
-   when 7 then 'jul'
-   when 8 then 'aug'
-   when 9 then 'sep'
-   when 10 then 'oct'
-   when 11 then 'nom'
-   when 12 then 'dec'
+  CASE EXTRACT(MONTH FROM saledate)
+   WHEN 1 then 'jan'
+   WHEN 2 then 'feb'
+   WHEN 3 then 'mar'
+   WHEN 4 then 'apr'
+   WHEN 5 then 'may'
+   WHEN 6 then 'jun'
+   WHEN 7 then 'jul'
+   WHEN 8 then 'aug'
+   WHEN 9 then 'sep'
+   WHEN 10 then 'oct'
+   WHEN 11 then 'nom'
+   WHEN 12 then 'dec'
    END as m,
   COUNT(sku) as SkuNumRet,
 ROW_NUMBER()OVER (PARTITION BY store ORDER BY store,SkuNumRet desc) as Ranking
 FROM trnsact
 QUALIFY Ranking <= 2
-WHERE stype='R' and not (m='aug' and EXTRACT(YEAR from saledate)=2005)
+WHERE stype='R' and not (m='aug' AND EXTRACT(YEAR FROM saledate)=2005)
 GROUP BY  store,m) sub
 
 GROUP BY sub.M, sub.Ranking
@@ -70,27 +70,27 @@ ORDER BY sub.Ranking asc
 select
          di.deptdesc,sk.dept,tr.store,   
 
-         count (distinct
-         (Case when extract(month from tr.saledate)=8 then tr.saledate END)) nDaysAug,
+         COUNT (distinct
+         (CASE WHEN extract(month FROM tr.saledate)=8 then tr.saledate END)) nDaysAug,
          count(distinct
-         (Case when extract(month from tr.saledate)=9 then tr.saledate END)) nDaysSep,
+         (CASE WHEN extract(month FROM tr.saledate)=9 then tr.saledate END)) nDaysSep,
 
-         sum(case when extract(month from tr.saledate)=8 then tr.amt END) as augRev,
-         sum(case when extract(month from tr.saledate)=9 then tr.amt END) as sepRev,
+         sum(CASE WHEN extract(month FROM tr.saledate)=8 then tr.amt END) as augRev,
+         sum(CASE WHEN extract(month FROM tr.saledate)=9 then tr.amt END) as sepRev,
 
          (sepRev/nDaysSep - augRev/nDaysAug) as MonthDiff,
          str.city, str.state
 
-from trnsact tr 
+FROM trnsact tr 
 JOIN strinfo as str ON str.store=tr.store
 JOIN skuinfo as sk ON sk.sku=tr.sku
 JOIN deptinfo di ON di.dept=sk.dept
 
-WHERE tr.stype='P' AND NOT (extract(month from tr.saledate)=8 AND extract(year from tr.saledate)=2005)
+WHERE tr.stype='P' AND NOT (extract(month FROM tr.saledate)=8 AND extract(year FROM tr.saledate)=2005)
 HAVING nDaysAug>=20 AND nDaysSep>=20 AND AugRev>1000 AND SepRev>1000
 
-group by sk.dept,tr.store,di.deptdesc, str.city, str.state
-order by MonthDiff asc
+GROUP BY sk.dept,tr.store,di.deptdesc, str.city, str.state
+ORDER BY MonthDiff asc
 
 
 
@@ -103,13 +103,13 @@ SELECT SUM(rads.tRevenue)/SUM(rads.ndays) as DayAverg,store_msa.msa_income Med_I
 FROM 
    (SELECT
     store,
-    EXTRACT(month from saledate) as m,
-    EXTRACT(year from saledate) y,
+    EXTRACT(month FROM saledate) as m,
+    EXTRACT(year FROM saledate) y,
     COUNT(DISTINCT saledate) nDays,
     SUM(amt) tRevenue,
     tRevenue/nDays AVGdailyRev
     FROM trnsact
-    WHERE stype='P' and not (m=8 and y=2005)
+    WHERE stype='P' AND NOT (m=8 and y=2005)
     GROUP BY  store,m,y
     HAVING ndays>20) as Rads
 
@@ -134,22 +134,22 @@ SELECT sa.Incomeg, SUM(rads.nDays)/SUM(rads.tRevenue) as AvgRev
 FROM 
 (SELECT
   store,
-  EXTRACT(MONTH from saledate) as m,
-  EXTRACT(YEAR from saledate) y,
+  EXTRACT(MONTH FROM saledate) as m,
+  EXTRACT(YEAR FROM saledate) y,
   COUNT(DISTINCT saledate) nDays,
   SUM(AMT) tRevenue,
   tRevenue/nDays AVGdailyRev
   FROM trnsact
-  WHERE stype='P' and NOT (m=8 and y=2005)
+  WHERE stype='P' AND NOT (m=8 AND y=2005)
   GROUP BY  store,m,y
   HAVING ndays>20) as Rads
 
 JOIN (SELECT store,msa_income,
      CASE
-     WHEN msa_income>1 and msa_income<=20000     then  'low'
-     WHEN msa_income>20000 and msa_income<=30000 then 'med-low'
-     WHEN msa_income>30000 and msa_income<=40000 then 'med-high'
-     WHEN msa_income>40000 and msa_income<=60000 then 'high'
+     WHEN msa_income>1 AND msa_income<=20000     then  'low'
+     WHEN msa_income>20000 AND msa_income<=30000 then 'med-low'
+     WHEN msa_income>30000 AND msa_income<=40000 then 'med-high'
+     WHEN msa_income>40000 AND msa_income<=60000 then 'high'
      END as IncomeG
      FROM store_msa) as sa
 
@@ -172,25 +172,25 @@ SELECT sa.popG, SUM(rads.tRevenue)/SUM(rads.nDays) as avgrev
 FROM 
    (SELECT
    store,
-   EXTRACT(MONTH from saledate) as m,
-   EXTRACT(YEAR from saledate) y,
+   EXTRACT(MONTH FROM saledate) as m,
+   EXTRACT(YEAR FROM saledate) y,
    COUNT(DISTINCT saledate) nDays,
    SUM(AMT) tRevenue,
    tRevenue/nDays AVGdailyRev,
-   CASE when EXTRACT(YEAR from saledate) = 2005 AND EXTRACT(MONTH from saledate) = 8 then 'exclude' END as exclude_flag
+   CASE WHEN EXTRACT(YEAR FROM saledate) = 2005 AND EXTRACT(MONTH FROM saledate) = 8 THEN 'exclude' END as exclude_flag
    FROM trnsact
    WHERE stype='P' AND exclude_flag IS NULL
    GROUP BY  store,m,y
 HAVING ndays>20) as Rads
 
-JOIN (select store,msa_income,
+JOIN (SELECT store,msa_income,
      CASE
-     WHEN msa_pop>1 and msa_pop<=100000     THEN  'very small'
-     WHEN msa_pop>100000 and msa_pop<=200000 THEN 'small'
-     WHEN msa_pop>200000 and msa_pop<=500000 THEN 'med_small'
-     WHEN msa_pop>500000 and msa_pop<=1000000 THEN 'med_large'
-     WHEN msa_pop>1000000 and msa_pop<=5000000 THEN 'large'
-     WHEN msa_pop>5000000 then 'very large' 
+     WHEN msa_pop>1 AND msa_pop<=100000     THEN  'very small'
+     WHEN msa_pop>100000 AND msa_pop<=200000 THEN 'small'
+     WHEN msa_pop>200000 AND msa_pop<=500000 THEN 'med_small'
+     WHEN msa_pop>500000 AND msa_pop<=1000000 THEN 'med_large'
+     WHEN msa_pop>1000000 AND msa_pop<=5000000 THEN 'large'
+     WHEN msa_pop>5000000 THEN 'very large' 
      END as popG
     FROM store_msa) as sa
 ON sa.store= rads.store
@@ -213,12 +213,12 @@ FROM
          di.deptdesc,sk.dept,tr.store,   
 
          COUNT (DISTINCT
-         (CASE when EXTRACT(MONTH from tr.saledate)=11 then tr.saledate END)) nDaysNov,
+         (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=11 then tr.saledate END)) nDaysNov,
          COUNT(DISTINCT
-         (CASE when EXTRACT(MONTH from tr.saledate)=12 then tr.saledate END)) nDaysDec,
+         (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=12 then tr.saledate END)) nDaysDec,
 
-         SUM(CASE when EXTRACT(MONTH from tr.saledate)=11 then tr.amt END) as novRev,
-         SUM(CASE when EXTRACT(MONTH from tr.saledate)=12 then tr.amt END) as decRev,
+         SUM(CASE WHEN EXTRACT(MONTH FROM tr.saledate)=11 then tr.amt END) as novRev,
+         SUM(CASE WHEN EXTRACT(MONTH FROM tr.saledate)=12 then tr.amt END) as decRev,
 
          novRev/nDaysNov as avgNov,
          decRev/nDaysDec as avgDec,
@@ -229,14 +229,14 @@ FROM
          ON sk.sku=tr.sku
          JOIN deptinfo di
          ON di.dept=sk.dept
-         WHERE tr.stype='P' and not (EXTRACT(MONTH from tr.saledate)=8 and EXTRACT(YEAR from tr.saledate)=2005)
+         WHERE tr.stype='P' AND NOT (EXTRACT(MONTH FROM tr.saledate)=8 AND EXTRACT(YEAR FROM tr.saledate)=2005)
          GROUP BY sk.dept,tr.store,di.deptdesc
-         HAVING nDaysNov>=20 and nDaysDec>=20 and NovRev>1000 and DecRev>1000 ) as sub
+         HAVING nDaysNov>=20 AND nDaysDec>=20 AND NovRev>1000 AND DecRev>1000 ) as sub
 
 JOIN strinfo as str
 ON str.store=sub.store
 GROUP BY sub.deptdesc, sub.dept, sub.store, PerIncr, str.city, str.state
-ORDER BY sub.PerIncr desc
+ORDER BY sub.PerIncr DESC
 
 
 
@@ -249,12 +249,12 @@ ORDER BY sub.PerIncr desc
 SELECT
          di.deptdesc,sk.dept,str.store,   
          COUNT (DISTINCT
-         (CASE when EXTRACT(MONTH from tr.saledate)=11 then tr.saledate END)) as nDaysNov,
+         (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=11 then tr.saledate END)) as nDaysNov,
          COUNT(DISTINCT
-         (CASE when EXTRACT(MONTH from tr.saledate)=12 then tr.saledate END)) as nDaysDec,
+         (CASE WHEN EXTRACT(MONTH FROM tr.saledate)=12 then tr.saledate END)) as nDaysDec,
 
-         SUM(CASE when EXTRACT(MONTH from tr.saledate)=11 then tr.amt END) as novRev,
-         SUM(CASE when EXTRACT(MONTH from tr.saledate)=12 then tr.amt END) as decRev,
+         SUM(CASE WHEN EXTRACT(MONTH FROM tr.saledate)=11 then tr.amt END) as novRev,
+         SUM(CASE WHEN EXTRACT(MONTH FROM tr.saledate)=12 then tr.amt END) as decRev,
 
          novRev/nDaysNov as avgNov,
          decRev/nDaysDec as avgDec,
@@ -269,11 +269,11 @@ ON sk.sku=tr.sku
 JOIN deptinfo di
 ON di.dept=sk.dept
 
-WHERE tr.stype='P' and not (EXTRACT(MONTH from tr.saledate)=8 and EXTRACT(YEAR from tr.saledate)=2005)
+WHERE tr.stype='P' AND NOT (EXTRACT(MONTH from tr.saledate)=8 AND EXTRACT(YEAR FROM tr.saledate)=2005)
 
 GROUP BY di.deptdesc, sk.dept, str.store, str.city, str.state 
-HAVING nDaysNov>=20 and nDaysDec>=20 and NovRev>1000 and DecRev>1000 
-ORDER BY PerIncr desc
+HAVING nDaysNov>=20 AND nDaysDec>=20 AND NovRev>1000 AND DecRev>1000 
+ORDER BY PerIncr DESC
 
 
 
@@ -282,23 +282,23 @@ ORDER BY PerIncr desc
 --August to September. How many fewer items did that department sell in September compared to August, and in 
 --what city and state was that store located?
 
-select  tr.store,di.deptdesc,str.city, str.state,
+SELECT  tr.store,di.deptdesc,str.city, str.state,
 
-         count (distinct(Case when extract(month from tr.saledate)=8 then tr.saledate END)) nDaysAug,
-         count(distinct(Case when extract(month from tr.saledate)=9 then tr.saledate END)) nDaysSep,
+         COUNT (DISTINCT(CASE WHEN EXTRACT(MONTH FROM tr.saledate)=8 THEN tr.saledate END)) nDaysAug,
+         COUNT (DISTINCT(CASE WHEN EXTRACT(MONTH FROM tr.saledate)=9 THEN tr.saledate END)) nDaysSep,
  
-         sum(case when extract(month from tr.saledate)=8 then tr.quantity END) as augNsku,
-         sum (case when extract(month from tr.saledate)=9 then tr.quantity END) as sepNsku,
+         SUM(CASE WHEN extract(MONTH FROM tr.saledate)=8 then tr.quantity END) as augNsku,
+         SUM(CASE WHEN extract(MONTH FROM tr.saledate)=9 then tr.quantity END) as sepNsku,
          (sepNsku- augNsku) as MonthDiff
 
-from trnsact tr JOIN strinfo as str on str.store=tr.store
-JOIN skuinfo as sk on sk.sku=tr.sku
-JOIN deptinfo di on di.dept=sk.dept
+FROM trnsact tr JOIN strinfo as str ON str.store=tr.store
+JOIN skuinfo as sk ON sk.sku=tr.sku
+JOIN deptinfo di ON di.dept=sk.dept
 
-where tr.stype='P' and NOT(extract(month from tr.saledate)=8 and extract(year from tr.saledate)=2005)
-group by  tr.store,str.city, str.state,di.deptdesc
-having nDaysAug>=20 and nDaysSep>=20
-order by MonthDiff asc;
+WHERE tr.stype='P' AND NOT(extract(month FROM tr.saledate)=8 AND extract(year FROM tr.saledate)=2005)
+GROUP BY  tr.store,str.city, str.state,di.deptdesc
+HAVING nDaysAug>=20 AND nDaysSep>=20
+ORDER BY MonthDiff ASC;
 
 
 
@@ -306,32 +306,32 @@ order by MonthDiff asc;
 --For each of the twelve months of the year, count how many stores' minimum average
 --daily revenue was in that month. During which month(s) did over 100 stores have their minimum average daily revenue?
 
-SELECT M, Ranking, count(ranking) Num_Month_Low
+SELECT M, Ranking, COUNT (ranking) Num_Month_Low
 
 FROM
 (SELECT
   store,
-  CASE EXTRACT(MONTH from saledate)
-   when 1 then 'jan'
-   when 2 then 'feb'
-   when 3 then 'mar'
-   when 4 then 'apr'
-   when 5 then 'may'
-   when 6 then 'jun'
-   when 7 then 'jul'
-   when 8 then 'aug'
-   when 9 then 'sep'
-   when 10 then 'oct'
-   when 11 then 'nom'
-   when 12 then 'dec'
+  CASE EXTRACT(MONTH FROM saledate)
+   WHEN 1 THEN 'jan'
+   WHEN 2 THEN 'feb'
+   WHEN 3 THEN 'mar'
+   WHEN 4 THEN 'apr'
+   WHEN 5 THEN 'may'
+   WHEN 6 THEN 'jun'
+   WHEN 7 THEN 'jul'
+   WHEN 8 THEN 'aug'
+   WHEN 9 THEN 'sep'
+   WHEN 10 THEN 'oct'
+   WHEN 11 THEN 'nom'
+   WHEN 12 THEN 'dec'
    END as m,
   COUNT(DISTINCT saledate) nDays,
   SUM(amt) tRevenue,
   tRevenue/nDays AVGdailyRev,
-ROW_NUMBER()OVER (PARTITION BY store ORDER BY store,AVGdailyRev asc) as Ranking
+ROW_NUMBER()OVER (PARTITION BY store ORDER BY store,AVGdailyRev ASC) as Ranking
 FROM trnsact
 QUALIFY Ranking <= 1
-WHERE stype='P' and NOT (EXTRACT(MONTH from saledate)=8 and EXTRACT(YEAR from saledate)=2005)
+WHERE stype='P' AND NOT (EXTRACT(MONTH FROM saledate)=8 AND EXTRACT(YEAR FROM saledate)=2005)
 GROUP BY  store,m
 HAVING ndays>=20) SUB
 
